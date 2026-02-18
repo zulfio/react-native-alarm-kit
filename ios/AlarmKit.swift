@@ -27,7 +27,7 @@ class AlarmKit: HybridAlarmKitSpec {
     }
     
     @available(iOS 15.1, *)
-    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?) throws -> NitroModules.Promise<Bool> {
+    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?) throws -> NitroModules.Promise<String> {
         return NitroModules.Promise.async {
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
@@ -82,7 +82,7 @@ class AlarmKit: HybridAlarmKitSpec {
                 let uuid = UUID()
                 do {
                     _ = try await manager.schedule(id: uuid, configuration: configuration)
-                    return true
+                    return uuid.uuidString
                 } catch {
                     throw error
                 }
@@ -107,7 +107,7 @@ class AlarmKit: HybridAlarmKitSpec {
         repeats: [AlarmWeekday],
         secondaryBtn: CustomizableAlarmButton?,
         countdown: AlarmCountdown?
-    ) throws -> NitroModules.Promise<Bool> {
+    ) throws -> NitroModules.Promise<String> {
         return NitroModules.Promise.async {
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
@@ -173,10 +173,95 @@ class AlarmKit: HybridAlarmKitSpec {
                 let uuid = UUID()
                 do {
                     _ = try await manager.schedule(id: uuid, configuration: configuration)
+                    return uuid.uuidString
+                } catch {
+                    throw error
+                }
+            } else {
+                throw NSError(
+                    domain: "AlarmKitError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "AlarmKit requires iOS 26.0 or later"]
+                )
+            }
+        }
+    }
+
+    @available(iOS 15.1, *)
+    public func cancelAlarm(id: String) throws -> NitroModules.Promise<Bool> {
+        return NitroModules.Promise.async {
+            if #available(iOS 26.0, *) {
+                guard let uuid = UUID(uuidString: id) else {
+                    throw NSError(
+                        domain: "AlarmKitError",
+                        code: 2,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid alarm ID: \(id)"]
+                    )
+                }
+                do {
+                    try await AlarmManager.shared.cancel(id: uuid)
                     return true
                 } catch {
                     throw error
                 }
+            } else {
+                throw NSError(
+                    domain: "AlarmKitError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "AlarmKit requires iOS 26.0 or later"]
+                )
+            }
+        }
+    }
+
+    @available(iOS 15.1, *)
+    public func cancelAllAlarms() throws -> NitroModules.Promise<Bool> {
+        return NitroModules.Promise.async {
+            if #available(iOS 26.0, *) {
+                let alarms = await AlarmManager.shared.alarms
+                for alarm in alarms {
+                    try await AlarmManager.shared.cancel(id: alarm.id)
+                }
+                return true
+            } else {
+                throw NSError(
+                    domain: "AlarmKitError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "AlarmKit requires iOS 26.0 or later"]
+                )
+            }
+        }
+    }
+
+    @available(iOS 15.1, *)
+    public func getAlarm(id: String) throws -> NitroModules.Promise<String?> {
+        return NitroModules.Promise.async {
+            if #available(iOS 26.0, *) {
+                guard let uuid = UUID(uuidString: id) else { return nil }
+                let alarms = await AlarmManager.shared.alarms
+                guard let alarm = alarms.first(where: { $0.id == uuid }) else { return nil }
+                switch alarm.state {
+                case .scheduled: return "scheduled"
+                case .ringing: return "ringing"
+                case .snoozed: return "snoozed"
+                default: return "unknown"
+                }
+            } else {
+                throw NSError(
+                    domain: "AlarmKitError",
+                    code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "AlarmKit requires iOS 26.0 or later"]
+                )
+            }
+        }
+    }
+
+    @available(iOS 15.1, *)
+    public func getAllAlarms() throws -> NitroModules.Promise<[String]> {
+        return NitroModules.Promise.async {
+            if #available(iOS 26.0, *) {
+                let alarms = await AlarmManager.shared.alarms
+                return alarms.map { $0.id.uuidString }
             } else {
                 throw NSError(
                     domain: "AlarmKitError",

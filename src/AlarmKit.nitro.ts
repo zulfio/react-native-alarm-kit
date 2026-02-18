@@ -10,7 +10,7 @@ export interface AlarmKit
     secondaryBtn?: CustomizableAlarmButton,
     timestamp?: number,
     countdown?: AlarmCountdown
-  ): Promise<boolean>;
+  ): Promise<string>;
   scheduleRelativeAlarm(
     title: string,
     stopBtn: CustomizableAlarmButton,
@@ -20,7 +20,11 @@ export interface AlarmKit
     repeats: AlarmWeekday[],
     secondaryBtn?: CustomizableAlarmButton,
     countdown?: AlarmCountdown
-  ): Promise<boolean>;
+  ): Promise<string>;
+  cancelAlarm(id: string): Promise<boolean>;
+  cancelAllAlarms(): Promise<boolean>;
+  getAlarm(id: string): Promise<string | null>;
+  getAllAlarms(): Promise<string[]>;
 }
 
 export interface CustomizableAlarmButton {

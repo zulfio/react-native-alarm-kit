@@ -20,7 +20,7 @@ export async function scheduleFixedAlarm(
   secondaryBtn?: CustomizableAlarmButton,
   timestamp?: number,
   countdown?: AlarmCountdown
-): Promise<boolean> {
+): Promise<string> {
   if (!timestamp && !countdown)
     throw new Error(
       'You need to specify when the alarm will trigger, use countdown for a timer and timestamp for an alarm.'
@@ -44,7 +44,7 @@ export async function scheduleRelativeAlarm(
   repeats: AlarmWeekday[],
   secondaryBtn?: CustomizableAlarmButton,
   countdown?: AlarmCountdown
-): Promise<boolean> {
+): Promise<string> {
   return AlarmKitHybridObject.scheduleRelativeAlarm(
     title,
     stopBtn,
@@ -55,6 +55,22 @@ export async function scheduleRelativeAlarm(
     secondaryBtn,
     countdown
   );
+}
+
+export async function cancelAlarm(id: string): Promise<boolean> {
+  return AlarmKitHybridObject.cancelAlarm(id);
+}
+
+export async function cancelAllAlarms(): Promise<boolean> {
+  return AlarmKitHybridObject.cancelAllAlarms();
+}
+
+export async function getAlarm(id: string): Promise<string | null> {
+  return AlarmKitHybridObject.getAlarm(id);
+}
+
+export async function getAllAlarms(): Promise<string[]> {
+  return AlarmKitHybridObject.getAllAlarms();
 }
 
 export async function createAlarmButton(
