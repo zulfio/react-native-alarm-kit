@@ -11,6 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => min_ios_version_supported }
+  s.module_name  = "RNAlarmKit"
   s.source       = { :git => "https://github.com/raphckrman/react-native-alarmkit.git", :tag => "#{s.version}" }
 
 
@@ -28,7 +29,7 @@ Pod::Spec.new do |s|
   s.dependency 'React-jsi'
   s.dependency 'React-callinvoker'
 
-  load 'nitrogen/generated/ios/AlarmKit+autolinking.rb'
+  load 'nitrogen/generated/ios/RNAlarmKit+autolinking.rb'
   add_nitrogen_files(s)
 
   install_modules_dependencies(s)

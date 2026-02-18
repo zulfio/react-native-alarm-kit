@@ -1,7 +1,7 @@
 {
   "cxxNamespace": ["alarmkit"],
   "ios": {
-    "iosModuleName": "AlarmKit"
+    "iosModuleName": "RNAlarmKit"
   },
   "android": {
     "androidNamespace": ["alarmkit"],
