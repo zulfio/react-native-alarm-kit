@@ -1,3 +1,5 @@
+For testing only, Fork of @raphckrman/react-native-alarm-kit.
+
 # 📱 react-native-alarmkit
 
 > [!WARNING]
