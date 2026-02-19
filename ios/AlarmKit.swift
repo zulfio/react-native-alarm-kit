@@ -252,7 +252,7 @@ class AlarmKit: HybridAlarmKitSpec {
         return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                let alarms = AlarmManager.shared.alarms
+                let alarms = try AlarmManager.shared.alarms
                 for alarm in alarms {
                     try AlarmManager.shared.cancel(id: alarm.id)
                 }
@@ -274,7 +274,7 @@ class AlarmKit: HybridAlarmKitSpec {
                 guard let uuid = UUID(uuidString: id) else {
                     return .first(.null)
                 }
-                let alarms = AlarmManager.shared.alarms
+                let alarms = try AlarmManager.shared.alarms
                 guard let alarm = alarms.first(where: { $0.id == uuid }) else {
                     return .first(.null)
                 }
@@ -299,7 +299,7 @@ class AlarmKit: HybridAlarmKitSpec {
         return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                let alarms = AlarmManager.shared.alarms
+                let alarms = try AlarmManager.shared.alarms
                 return alarms.map { $0.id.uuidString }
             }
             #endif
