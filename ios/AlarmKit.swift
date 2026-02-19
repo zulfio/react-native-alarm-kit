@@ -112,7 +112,7 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
 
-                let alarmSound: AlarmManager.AlarmConfiguration.AlertSound
+                let alarmSound: Alarm.AlertSound
                 if let soundName = sound, !soundName.isEmpty {
                     alarmSound = .named(soundName)
                 } else {
@@ -238,7 +238,7 @@ class AlarmKit: HybridAlarmKitSpec {
                 let relativeSchedule = Alarm.Schedule.Relative(time: time, repeats: recurrence)
                 let schedule = Alarm.Schedule.relative(relativeSchedule)
 
-                let alarmSound: AlarmManager.AlarmConfiguration.AlertSound
+                let alarmSound: Alarm.AlertSound
                 if let soundName = sound, !soundName.isEmpty {
                     alarmSound = .named(soundName)
                 } else {
