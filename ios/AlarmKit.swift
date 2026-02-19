@@ -104,6 +104,14 @@ class AlarmKit: HybridAlarmKitSpec {
                     schedule = Alarm.Schedule.fixed(date)
                 }
 
+                guard schedule != nil || countdownDuration != nil else {
+                    throw NSError(
+                        domain: "AlarmKitError",
+                        code: 3,
+                        userInfo: [NSLocalizedDescriptionKey: "You must provide at least a timestamp or a countdown duration."]
+                    )
+                }
+
                 let configuration = AlarmManager.AlarmConfiguration(
                     countdownDuration: countdownDuration,
                     schedule: schedule,
@@ -189,7 +197,24 @@ class AlarmKit: HybridAlarmKitSpec {
 
                 let attributes = AlarmAttributes<EmptyMetadata>(presentation: presentation, tintColor: Color(StringToColor(hex: tintColor)))
 
-                let time = Alarm.Schedule.Relative.Time(hour: Int(hour), minute: Int(minute))
+                let hourInt = Int(hour)
+                let minuteInt = Int(minute)
+                guard (0...23).contains(hourInt) else {
+                    throw NSError(
+                        domain: "AlarmKitError",
+                        code: 4,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid hour: \(hourInt). Must be between 0 and 23."]
+                    )
+                }
+                guard (0...59).contains(minuteInt) else {
+                    throw NSError(
+                        domain: "AlarmKitError",
+                        code: 5,
+                        userInfo: [NSLocalizedDescriptionKey: "Invalid minute: \(minuteInt). Must be between 0 and 59."]
+                    )
+                }
+
+                let time = Alarm.Schedule.Relative.Time(hour: hourInt, minute: minuteInt)
                 let localeWeekdays: [Locale.Weekday] = repeats.map { alarmWeekday in
                     switch alarmWeekday {
                     case .monday: return .monday
@@ -236,6 +261,10 @@ class AlarmKit: HybridAlarmKitSpec {
                         userInfo: [NSLocalizedDescriptionKey: "Invalid alarm ID: \(id)"]
                     )
                 }
+                let alarms = try AlarmManager.shared.alarms
+                guard alarms.contains(where: { $0.id == uuid }) else {
+                    return false
+                }
                 try AlarmManager.shared.cancel(id: uuid)
                 return true
             }
@@ -254,7 +283,7 @@ class AlarmKit: HybridAlarmKitSpec {
             if #available(iOS 26.0, *) {
                 let alarms = try AlarmManager.shared.alarms
                 for alarm in alarms {
-                    try AlarmManager.shared.cancel(id: alarm.id)
+                    try? AlarmManager.shared.cancel(id: alarm.id)
                 }
                 return true
             }
@@ -319,17 +348,25 @@ func StringToColor(hex: String) -> UIColor {
         cString.remove(at: cString.startIndex)
     }
 
-    if cString.count != 6 {
-        return UIColor.gray
-    }
-
     var rgbValue: UInt64 = 0
     Scanner(string: cString).scanHexInt64(&rgbValue)
 
-    return UIColor(
-        red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
-        green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
-        blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
-        alpha: CGFloat(1.0)
-    )
+    switch cString.count {
+    case 6:
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
+            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
+            alpha: 1.0
+        )
+    case 8:
+        return UIColor(
+            red: CGFloat((rgbValue & 0xFF000000) >> 24) / 255.0,
+            green: CGFloat((rgbValue & 0x00FF0000) >> 16) / 255.0,
+            blue: CGFloat((rgbValue & 0x0000FF00) >> 8) / 255.0,
+            alpha: CGFloat(rgbValue & 0x000000FF) / 255.0
+        )
+    default:
+        return UIColor.gray
+    }
 }

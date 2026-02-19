@@ -25,7 +25,7 @@ export async function scheduleFixedAlarm(
   timestamp?: number,
   countdown?: AlarmCountdown
 ): Promise<string> {
-  if (!timestamp && !countdown)
+  if (timestamp == null && countdown == null)
     throw new Error(
       'You need to specify when the alarm will trigger, use countdown for a timer and timestamp for an alarm.'
     );
