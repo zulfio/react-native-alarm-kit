@@ -9,6 +9,14 @@ import NitroModules
 nonisolated struct EmptyMetadata: AlarmMetadata {}
 #endif
 
+private func extractDouble(_ variant: Variant_NullType_Double?) -> Double? {
+    guard let v = variant else { return nil }
+    switch v {
+    case .first: return nil
+    case .second(let value): return value
+    }
+}
+
 class AlarmKit: HybridAlarmKitSpec {
     public func isSupported() throws -> Bool {
         if #available(iOS 26.0, *) {
@@ -17,19 +25,12 @@ class AlarmKit: HybridAlarmKitSpec {
         return false
     }
 
-    @available(iOS 15.1, *)
-    public func requestAlarmPermission() throws -> NitroModules.Promise<Bool> {
-        return NitroModules.Promise.async {
+    public func requestAlarmPermission() throws -> Promise<Bool> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
-                let state: AlarmManager.AuthorizationState
-                do {
-                    state = try await manager.requestAuthorization()
-                } catch {
-                    print("Error in requestAuthorization: \(error)")
-                    throw error
-                }
+                let state = try await manager.requestAuthorization()
                 return state == .authorized
             }
             #endif
@@ -41,9 +42,8 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
-    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?) throws -> NitroModules.Promise<String> {
-        return NitroModules.Promise.async {
+    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?) throws -> Promise<String> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
@@ -78,7 +78,9 @@ class AlarmKit: HybridAlarmKitSpec {
                 let countdownDuration: Alarm.CountdownDuration?
 
                 if let countdown = countdown {
-                    countdownDuration = Alarm.CountdownDuration(preAlert: countdown.preAlert, postAlert: countdown.postAlert)
+                    let pre = extractDouble(countdown.preAlert)
+                    let post = extractDouble(countdown.postAlert)
+                    countdownDuration = Alarm.CountdownDuration(preAlert: pre, postAlert: post)
                     let countdownContent = AlarmPresentation.Countdown(title: LocalizedStringResource(stringLiteral: title))
                     let pausedContent = AlarmPresentation.Paused(
                         title: LocalizedStringResource(stringLiteral: "Paused"),
@@ -110,12 +112,8 @@ class AlarmKit: HybridAlarmKitSpec {
                 )
 
                 let uuid = UUID()
-                do {
-                    _ = try await manager.schedule(id: uuid, configuration: configuration)
-                    return uuid.uuidString
-                } catch {
-                    throw error
-                }
+                _ = try await manager.schedule(id: uuid, configuration: configuration)
+                return uuid.uuidString
             }
             #endif
             throw NSError(
@@ -126,7 +124,6 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
     public func scheduleRelativeAlarm(
         title: String,
         stopBtn: CustomizableAlarmButton,
@@ -136,8 +133,8 @@ class AlarmKit: HybridAlarmKitSpec {
         repeats: [AlarmWeekday],
         secondaryBtn: CustomizableAlarmButton?,
         countdown: AlarmCountdown?
-    ) throws -> NitroModules.Promise<String> {
-        return NitroModules.Promise.async {
+    ) throws -> Promise<String> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
@@ -172,7 +169,9 @@ class AlarmKit: HybridAlarmKitSpec {
                 let countdownDuration: Alarm.CountdownDuration?
 
                 if let countdown = countdown {
-                    countdownDuration = Alarm.CountdownDuration(preAlert: countdown.preAlert, postAlert: countdown.postAlert)
+                    let pre = extractDouble(countdown.preAlert)
+                    let post = extractDouble(countdown.postAlert)
+                    countdownDuration = Alarm.CountdownDuration(preAlert: pre, postAlert: post)
                     let countdownContent = AlarmPresentation.Countdown(title: LocalizedStringResource(stringLiteral: title))
                     let pausedContent = AlarmPresentation.Paused(
                         title: LocalizedStringResource(stringLiteral: "Paused"),
@@ -214,12 +213,8 @@ class AlarmKit: HybridAlarmKitSpec {
                 )
 
                 let uuid = UUID()
-                do {
-                    _ = try await manager.schedule(id: uuid, configuration: configuration)
-                    return uuid.uuidString
-                } catch {
-                    throw error
-                }
+                _ = try await manager.schedule(id: uuid, configuration: configuration)
+                return uuid.uuidString
             }
             #endif
             throw NSError(
@@ -230,9 +225,8 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
-    public func cancelAlarm(id: String) throws -> NitroModules.Promise<Bool> {
-        return NitroModules.Promise.async {
+    public func cancelAlarm(id: String) throws -> Promise<Bool> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 guard let uuid = UUID(uuidString: id) else {
@@ -242,12 +236,8 @@ class AlarmKit: HybridAlarmKitSpec {
                         userInfo: [NSLocalizedDescriptionKey: "Invalid alarm ID: \(id)"]
                     )
                 }
-                do {
-                    try AlarmManager.shared.cancel(id: uuid)
-                    return true
-                } catch {
-                    throw error
-                }
+                try AlarmManager.shared.cancel(id: uuid)
+                return true
             }
             #endif
             throw NSError(
@@ -258,9 +248,8 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
-    public func cancelAllAlarms() throws -> NitroModules.Promise<Bool> {
-        return NitroModules.Promise.async {
+    public func cancelAllAlarms() throws -> Promise<Bool> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let alarms = AlarmManager.shared.alarms
@@ -278,20 +267,23 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
-    public func getAlarm(id: String) throws -> NitroModules.Promise<String?> {
-        return NitroModules.Promise.async {
+    public func getAlarm(id: String) throws -> Promise<Variant_NullType_String> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                guard let uuid = UUID(uuidString: id) else { return nil }
+                guard let uuid = UUID(uuidString: id) else {
+                    return .first(.null)
+                }
                 let alarms = AlarmManager.shared.alarms
-                guard let alarm = alarms.first(where: { $0.id == uuid }) else { return nil }
+                guard let alarm = alarms.first(where: { $0.id == uuid }) else {
+                    return .first(.null)
+                }
                 switch alarm.state {
-                case .scheduled: return "scheduled"
-                case .countdown: return "countdown"
-                case .alerting: return "alerting"
-                case .paused: return "paused"
-                @unknown default: return "unknown"
+                case .scheduled: return .second("scheduled")
+                case .countdown: return .second("countdown")
+                case .alerting: return .second("alerting")
+                case .paused: return .second("paused")
+                @unknown default: return .second("unknown")
                 }
             }
             #endif
@@ -303,9 +295,8 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    @available(iOS 15.1, *)
-    public func getAllAlarms() throws -> NitroModules.Promise<[String]> {
-        return NitroModules.Promise.async {
+    public func getAllAlarms() throws -> Promise<[String]> {
+        return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let alarms = AlarmManager.shared.alarms
