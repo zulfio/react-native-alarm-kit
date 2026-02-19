@@ -10,7 +10,8 @@ export interface AlarmKit
     tintColor: string,
     secondaryBtn?: CustomizableAlarmButton,
     timestamp?: number,
-    countdown?: AlarmCountdown
+    countdown?: AlarmCountdown,
+    sound?: string
   ): Promise<string>;
   scheduleRelativeAlarm(
     title: string,
@@ -20,7 +21,8 @@ export interface AlarmKit
     minute: number,
     repeats: AlarmWeekday[],
     secondaryBtn?: CustomizableAlarmButton,
-    countdown?: AlarmCountdown
+    countdown?: AlarmCountdown,
+    sound?: string
   ): Promise<string>;
   cancelAlarm(id: string): Promise<boolean>;
   cancelAllAlarms(): Promise<boolean>;
@@ -47,3 +49,25 @@ export type AlarmWeekday =
   | 'friday'
   | 'saturday'
   | 'sunday';
+
+export interface ScheduleFixedAlarmOptions {
+  title: string;
+  stopBtn: CustomizableAlarmButton;
+  tintColor: string;
+  secondaryBtn?: CustomizableAlarmButton;
+  timestamp?: number;
+  countdown?: AlarmCountdown;
+  sound?: string;
+}
+
+export interface ScheduleRelativeAlarmOptions {
+  title: string;
+  stopBtn: CustomizableAlarmButton;
+  tintColor: string;
+  hour: number;
+  minute: number;
+  repeats: AlarmWeekday[];
+  secondaryBtn?: CustomizableAlarmButton;
+  countdown?: AlarmCountdown;
+  sound?: string;
+}

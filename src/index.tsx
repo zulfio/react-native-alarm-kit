@@ -4,6 +4,8 @@ import type {
   AlarmKit,
   AlarmWeekday,
   CustomizableAlarmButton,
+  ScheduleFixedAlarmOptions,
+  ScheduleRelativeAlarmOptions,
 } from './AlarmKit.nitro';
 
 const AlarmKitHybridObject =
@@ -18,13 +20,9 @@ export async function requestAlarmPermission(): Promise<boolean> {
 }
 
 export async function scheduleFixedAlarm(
-  title: string,
-  stopBtn: CustomizableAlarmButton,
-  tintColor: string,
-  secondaryBtn?: CustomizableAlarmButton,
-  timestamp?: number,
-  countdown?: AlarmCountdown
+  options: ScheduleFixedAlarmOptions
 ): Promise<string> {
+  const { title, stopBtn, tintColor, secondaryBtn, timestamp, countdown, sound } = options;
   if (timestamp == null && countdown == null)
     throw new Error(
       'You need to specify when the alarm will trigger, use countdown for a timer and timestamp for an alarm.'
@@ -35,20 +33,15 @@ export async function scheduleFixedAlarm(
     tintColor,
     secondaryBtn,
     timestamp,
-    countdown
+    countdown,
+    sound
   );
 }
 
 export async function scheduleRelativeAlarm(
-  title: string,
-  stopBtn: CustomizableAlarmButton,
-  tintColor: string,
-  hour: number,
-  minute: number,
-  repeats: AlarmWeekday[],
-  secondaryBtn?: CustomizableAlarmButton,
-  countdown?: AlarmCountdown
+  options: ScheduleRelativeAlarmOptions
 ): Promise<string> {
+  const { title, stopBtn, tintColor, hour, minute, repeats, secondaryBtn, countdown, sound } = options;
   return AlarmKitHybridObject.scheduleRelativeAlarm(
     title,
     stopBtn,
@@ -57,7 +50,8 @@ export async function scheduleRelativeAlarm(
     minute,
     repeats,
     secondaryBtn,
-    countdown
+    countdown,
+    sound
   );
 }
 
@@ -107,4 +101,10 @@ const RNAlarmKit = {
 
 export default RNAlarmKit;
 
-export type { AlarmCountdown, AlarmWeekday, CustomizableAlarmButton };
+export type {
+  AlarmCountdown,
+  AlarmWeekday,
+  CustomizableAlarmButton,
+  ScheduleFixedAlarmOptions,
+  ScheduleRelativeAlarmOptions,
+};

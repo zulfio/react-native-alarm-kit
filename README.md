@@ -65,13 +65,13 @@ const stopBtn = RNAlarmKit.createAlarmButton('Stop', '#FF0000', 'stop.circle');
 const secondBtn = RNAlarmKit.createAlarmButton('Repeat', '#000000', 'play.circle');
 
 const timestamp = Date.now() / 1000 + 60; // 60 seconds from now (Unix seconds)
-const alarmId = await RNAlarmKit.scheduleFixedAlarm(
-  'Morning Alarm',
+const alarmId = await RNAlarmKit.scheduleFixedAlarm({
+  title: 'Morning Alarm',
   stopBtn,
-  '#FFFFFF',
-  secondBtn,
-  timestamp
-);
+  tintColor: '#FFFFFF',
+  secondaryBtn: secondBtn,
+  timestamp,
+});
 ```
 
 ### Schedule a Fixed Alarm (countdown timer)
@@ -80,14 +80,27 @@ const alarmId = await RNAlarmKit.scheduleFixedAlarm(
 const stopBtn = RNAlarmKit.createAlarmButton('Stop', '#FF0000', 'stop.circle');
 const countdown = RNAlarmKit.createAlarmCountdown(3, 15); // preAlert: 3s, postAlert: 15s
 
-const alarmId = await RNAlarmKit.scheduleFixedAlarm(
-  'Egg Timer',
+const alarmId = await RNAlarmKit.scheduleFixedAlarm({
+  title: 'Egg Timer',
   stopBtn,
-  '#FFFFFF',
-  undefined,
-  undefined,
-  countdown
-);
+  tintColor: '#FFFFFF',
+  countdown,
+});
+```
+
+### Schedule a Fixed Alarm with Custom Sound
+
+```js
+const stopBtn = RNAlarmKit.createAlarmButton('Stop', '#FF0000', 'stop.circle');
+const timestamp = Date.now() / 1000 + 60;
+
+const alarmId = await RNAlarmKit.scheduleFixedAlarm({
+  title: 'Morning Alarm',
+  stopBtn,
+  tintColor: '#FFFFFF',
+  timestamp,
+  sound: 'my_alarm.caf', // sound file bundled in your iOS app
+});
 ```
 
 ### Schedule a Relative Alarm (recurring, by time of day)
@@ -96,24 +109,40 @@ const alarmId = await RNAlarmKit.scheduleFixedAlarm(
 const stopBtn = RNAlarmKit.createAlarmButton('Stop', '#FF0000', 'stop.circle');
 
 // Every Monday, Thursday, Friday at 10:00
-const alarmId = await RNAlarmKit.scheduleRelativeAlarm(
-  'Daily Standup',
+const alarmId = await RNAlarmKit.scheduleRelativeAlarm({
+  title: 'Daily Standup',
   stopBtn,
-  '#FFFFFF',
-  10,
-  0,
-  ['monday', 'thursday', 'friday']
-);
+  tintColor: '#FFFFFF',
+  hour: 10,
+  minute: 0,
+  repeats: ['monday', 'thursday', 'friday'],
+});
 
 // One-time relative alarm (no repeats)
-const onceId = await RNAlarmKit.scheduleRelativeAlarm(
-  'One-time Alarm',
+const onceId = await RNAlarmKit.scheduleRelativeAlarm({
+  title: 'One-time Alarm',
   stopBtn,
-  '#FFFFFF',
-  8,
-  30,
-  []
-);
+  tintColor: '#FFFFFF',
+  hour: 8,
+  minute: 30,
+  repeats: [],
+});
+```
+
+### Schedule a Relative Alarm with Custom Sound
+
+```js
+const stopBtn = RNAlarmKit.createAlarmButton('Stop', '#FF0000', 'stop.circle');
+
+const alarmId = await RNAlarmKit.scheduleRelativeAlarm({
+  title: 'Daily Standup',
+  stopBtn,
+  tintColor: '#FFFFFF',
+  hour: 10,
+  minute: 0,
+  repeats: ['monday', 'thursday', 'friday'],
+  sound: 'my_alarm.caf', // sound file bundled in your iOS app
+});
 ```
 
 ### Cancel Alarms
@@ -143,13 +172,35 @@ Returns `true` if the device is running iOS 26+ and AlarmKit is available.
 
 Requests authorization to schedule alarms. Returns `true` if granted.
 
-### `scheduleFixedAlarm(title, stopBtn, tintColor, secondaryBtn?, timestamp?, countdown?): Promise<string>`
+### `scheduleFixedAlarm(options): Promise<string>`
 
-Schedules a one-time alarm at a fixed date/time or as a countdown timer. Either `timestamp` (Unix seconds) or `countdown` must be provided. Returns the alarm UUID.
+Schedules a one-time alarm at a fixed date/time or as a countdown timer. Either `timestamp` or `countdown` must be provided. Returns the alarm UUID.
 
-### `scheduleRelativeAlarm(title, stopBtn, tintColor, hour, minute, repeats, secondaryBtn?, countdown?): Promise<string>`
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `title` | `string` | ✅ | Title shown in the alarm alert UI |
+| `stopBtn` | `CustomizableAlarmButton` | ✅ | Button that stops/dismisses the alarm |
+| `tintColor` | `string` | ✅ | Hex color applied to the alarm UI (e.g. `"#FF0000"`) |
+| `secondaryBtn` | `CustomizableAlarmButton` | — | Optional second action button (e.g. Snooze / Repeat) |
+| `timestamp` | `number` | — | Unix timestamp in seconds for when the alarm fires. Required if `countdown` is not set |
+| `countdown` | `AlarmCountdown` | — | Countdown timer config. Required if `timestamp` is not set |
+| `sound` | `string` | — | Custom sound filename bundled in your iOS app (e.g. `"alarm.caf"`). Omit to use the system default |
 
-Schedules an alarm at a specific time of day. Pass weekdays in `repeats` for recurring, or an empty array for one-time. Returns the alarm UUID.
+### `scheduleRelativeAlarm(options): Promise<string>`
+
+Schedules an alarm at a specific time of day, optionally on a repeating weekly schedule. Returns the alarm UUID.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `title` | `string` | ✅ | Title shown in the alarm alert UI |
+| `stopBtn` | `CustomizableAlarmButton` | ✅ | Button that stops/dismisses the alarm |
+| `tintColor` | `string` | ✅ | Hex color applied to the alarm UI (e.g. `"#FFFFFF"`) |
+| `hour` | `number` | ✅ | Hour of day to fire (0–23) |
+| `minute` | `number` | ✅ | Minute of hour to fire (0–59) |
+| `repeats` | `AlarmWeekday[]` | ✅ | Days to repeat on. Pass an empty array `[]` for a one-time alarm |
+| `secondaryBtn` | `CustomizableAlarmButton` | — | Optional second action button (e.g. Snooze / Repeat) |
+| `countdown` | `AlarmCountdown` | — | Countdown timer config to attach to this alarm |
+| `sound` | `string` | — | Custom sound filename bundled in your iOS app (e.g. `"alarm.caf"`). Omit to use the system default |
 
 ### `cancelAlarm(id): Promise<boolean>`
 
@@ -169,11 +220,22 @@ Returns UUIDs of all active alarms.
 
 ### `createAlarmButton(text, textColor, icon): CustomizableAlarmButton`
 
-Creates a button config. `icon` is an [SF Symbol](https://developer.apple.com/sf-symbols/) name (e.g. `"stop.circle"`). `textColor` is a hex string (e.g. `"#FF0000"`).
+Helper to create a `CustomizableAlarmButton` object.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `text` | `string` | Label shown on the button |
+| `textColor` | `string` | Hex color for the button text (e.g. `"#FF0000"`) |
+| `icon` | `string` | [SF Symbol](https://developer.apple.com/sf-symbols/) name (e.g. `"stop.circle"`) |
 
 ### `createAlarmCountdown(preAlert, postAlert): AlarmCountdown`
 
-Creates a countdown config. Both values are in seconds. `preAlert` is the countdown before the alarm fires, `postAlert` is the duration after which the alarm can repeat.
+Helper to create an `AlarmCountdown` object.
+
+| Parameter | Type | Description |
+|---|---|---|
+| `preAlert` | `number \| null` | Duration in seconds to count down **before** the alarm fires. `null` to skip |
+| `postAlert` | `number \| null` | Duration in seconds for the snooze/repeat window **after** the alarm fires. `null` to skip |
 
 ## Types
 
@@ -183,14 +245,36 @@ type AlarmWeekday =
   | 'friday' | 'saturday' | 'sunday';
 
 interface CustomizableAlarmButton {
-  text: string;
-  textColor: string;
-  icon: string;
+  text: string;      // Button label
+  textColor: string; // Hex color string, e.g. "#FF0000"
+  icon: string;      // SF Symbol name, e.g. "stop.circle"
 }
 
 interface AlarmCountdown {
-  preAlert?: number | null;
-  postAlert?: number | null;
+  preAlert?: number | null;  // Seconds to count down before alarm fires
+  postAlert?: number | null; // Seconds for the snooze/repeat window after alarm fires
+}
+
+interface ScheduleFixedAlarmOptions {
+  title: string;
+  stopBtn: CustomizableAlarmButton;
+  tintColor: string;
+  secondaryBtn?: CustomizableAlarmButton;
+  timestamp?: number;
+  countdown?: AlarmCountdown;
+  sound?: string;
+}
+
+interface ScheduleRelativeAlarmOptions {
+  title: string;
+  stopBtn: CustomizableAlarmButton;
+  tintColor: string;
+  hour: number;
+  minute: number;
+  repeats: AlarmWeekday[];
+  secondaryBtn?: CustomizableAlarmButton;
+  countdown?: AlarmCountdown;
+  sound?: string;
 }
 ```
 

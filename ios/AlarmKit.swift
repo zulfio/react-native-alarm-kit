@@ -42,7 +42,7 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?) throws -> Promise<String> {
+    public func scheduleFixedAlarm(title: String, stopBtn: CustomizableAlarmButton, tintColor: String, secondaryBtn: CustomizableAlarmButton?, timestamp: Double?, countdown: AlarmCountdown?, sound: String?) throws -> Promise<String> {
         return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
@@ -112,11 +112,18 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
 
+                let alarmSound: AlertConfiguration.AlertSound
+                if let soundName = sound, !soundName.isEmpty {
+                    alarmSound = .named(soundName)
+                } else {
+                    alarmSound = .default
+                }
+
                 let configuration = AlarmManager.AlarmConfiguration(
                     countdownDuration: countdownDuration,
                     schedule: schedule,
                     attributes: attributes,
-                    sound: .default
+                    sound: alarmSound
                 )
 
                 let uuid = UUID()
@@ -140,7 +147,8 @@ class AlarmKit: HybridAlarmKitSpec {
         minute: Double,
         repeats: [AlarmWeekday],
         secondaryBtn: CustomizableAlarmButton?,
-        countdown: AlarmCountdown?
+        countdown: AlarmCountdown?,
+        sound: String?
     ) throws -> Promise<String> {
         return Promise.async {
             #if canImport(AlarmKit)
@@ -230,11 +238,18 @@ class AlarmKit: HybridAlarmKitSpec {
                 let relativeSchedule = Alarm.Schedule.Relative(time: time, repeats: recurrence)
                 let schedule = Alarm.Schedule.relative(relativeSchedule)
 
+                let alarmSound: AlertConfiguration.AlertSound
+                if let soundName = sound, !soundName.isEmpty {
+                    alarmSound = .named(soundName)
+                } else {
+                    alarmSound = .default
+                }
+
                 let configuration = AlarmManager.AlarmConfiguration(
                     countdownDuration: countdownDuration,
                     schedule: schedule,
                     attributes: attributes,
-                    sound: .default
+                    sound: alarmSound
                 )
 
                 let uuid = UUID()
