@@ -3,6 +3,7 @@ import AlarmKit
 #endif
 import SwiftUI
 import NitroModules
+import ActivityKit
 
 #if canImport(AlarmKit)
 @available(iOS 26.0, *)
@@ -112,7 +113,7 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
 
-                let alarmSound: Alarm.AlertSound
+                let alarmSound: AlertConfiguration.AlertSound
                 if let soundName = sound, !soundName.isEmpty {
                     alarmSound = .named(soundName)
                 } else {
@@ -238,7 +239,7 @@ class AlarmKit: HybridAlarmKitSpec {
                 let relativeSchedule = Alarm.Schedule.Relative(time: time, repeats: recurrence)
                 let schedule = Alarm.Schedule.relative(relativeSchedule)
 
-                let alarmSound: Alarm.AlertSound
+                let alarmSound: AlertConfiguration.AlertSound
                 if let soundName = sound, !soundName.isEmpty {
                     alarmSound = .named(soundName)
                 } else {
