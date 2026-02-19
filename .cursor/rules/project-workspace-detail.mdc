@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+this project is a custom react native module for implementing ios AlarmKit. Published into npmjs, user can install and use this.
