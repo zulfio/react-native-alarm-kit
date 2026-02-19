@@ -4,7 +4,19 @@ import AlarmKit
 import SwiftUI
 import NitroModules
 
+#if canImport(AlarmKit)
+@available(iOS 26.0, *)
+nonisolated struct EmptyMetadata: AlarmMetadata {}
+#endif
+
 class AlarmKit: HybridAlarmKitSpec {
+    public func isSupported() throws -> Bool {
+        if #available(iOS 26.0, *) {
+            return true
+        }
+        return false
+    }
+
     @available(iOS 15.1, *)
     public func requestAlarmPermission() throws -> NitroModules.Promise<Bool> {
         return NitroModules.Promise.async {
@@ -62,10 +74,26 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
 
-                let presentation = AlarmPresentation(alert: alertPresentationAlert)
-                let countdownDuration = Alarm.CountdownDuration(preAlert: countdown?.preAlert, postAlert: countdown?.postAlert)
+                let presentation: AlarmPresentation
+                let countdownDuration: Alarm.CountdownDuration?
 
-                nonisolated struct EmptyMetadata: AlarmMetadata {}
+                if let countdown = countdown {
+                    countdownDuration = Alarm.CountdownDuration(preAlert: countdown.preAlert, postAlert: countdown.postAlert)
+                    let countdownContent = AlarmPresentation.Countdown(title: LocalizedStringResource(stringLiteral: title))
+                    let pausedContent = AlarmPresentation.Paused(
+                        title: LocalizedStringResource(stringLiteral: "Paused"),
+                        resumeButton: AlarmButton(
+                            text: LocalizedStringResource(stringLiteral: "Resume"),
+                            textColor: Color(StringToColor(hex: stopBtn.textColor)),
+                            systemImageName: "play.circle"
+                        )
+                    )
+                    presentation = AlarmPresentation(alert: alertPresentationAlert, countdown: countdownContent, paused: pausedContent)
+                } else {
+                    countdownDuration = nil
+                    presentation = AlarmPresentation(alert: alertPresentationAlert)
+                }
+
                 let attributes = AlarmAttributes<EmptyMetadata>(presentation: presentation, tintColor: Color(StringToColor(hex: tintColor)))
 
                 var schedule: Alarm.Schedule? = nil
@@ -140,10 +168,26 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
 
-                let presentation = AlarmPresentation(alert: alertPresentationAlert)
-                let countdownDuration = Alarm.CountdownDuration(preAlert: countdown?.preAlert, postAlert: countdown?.postAlert)
+                let presentation: AlarmPresentation
+                let countdownDuration: Alarm.CountdownDuration?
 
-                nonisolated struct EmptyMetadata: AlarmMetadata {}
+                if let countdown = countdown {
+                    countdownDuration = Alarm.CountdownDuration(preAlert: countdown.preAlert, postAlert: countdown.postAlert)
+                    let countdownContent = AlarmPresentation.Countdown(title: LocalizedStringResource(stringLiteral: title))
+                    let pausedContent = AlarmPresentation.Paused(
+                        title: LocalizedStringResource(stringLiteral: "Paused"),
+                        resumeButton: AlarmButton(
+                            text: LocalizedStringResource(stringLiteral: "Resume"),
+                            textColor: Color(StringToColor(hex: stopBtn.textColor)),
+                            systemImageName: "play.circle"
+                        )
+                    )
+                    presentation = AlarmPresentation(alert: alertPresentationAlert, countdown: countdownContent, paused: pausedContent)
+                } else {
+                    countdownDuration = nil
+                    presentation = AlarmPresentation(alert: alertPresentationAlert)
+                }
+
                 let attributes = AlarmAttributes<EmptyMetadata>(presentation: presentation, tintColor: Color(StringToColor(hex: tintColor)))
 
                 let time = Alarm.Schedule.Relative.Time(hour: Int(hour), minute: Int(minute))
@@ -158,7 +202,7 @@ class AlarmKit: HybridAlarmKitSpec {
                     case .sunday: return .sunday
                     }
                 }
-                let recurrence = Alarm.Schedule.Relative.Recurrence.weekly(localeWeekdays)
+                let recurrence: Alarm.Schedule.Relative.Recurrence = localeWeekdays.isEmpty ? .never : .weekly(localeWeekdays)
                 let relativeSchedule = Alarm.Schedule.Relative(time: time, repeats: recurrence)
                 let schedule = Alarm.Schedule.relative(relativeSchedule)
 
@@ -199,7 +243,7 @@ class AlarmKit: HybridAlarmKitSpec {
                     )
                 }
                 do {
-                    try await AlarmManager.shared.cancel(id: uuid)
+                    try AlarmManager.shared.cancel(id: uuid)
                     return true
                 } catch {
                     throw error
@@ -219,9 +263,9 @@ class AlarmKit: HybridAlarmKitSpec {
         return NitroModules.Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                let alarms = await AlarmManager.shared.alarms
+                let alarms = AlarmManager.shared.alarms
                 for alarm in alarms {
-                    try await AlarmManager.shared.cancel(id: alarm.id)
+                    try AlarmManager.shared.cancel(id: alarm.id)
                 }
                 return true
             }
@@ -240,13 +284,14 @@ class AlarmKit: HybridAlarmKitSpec {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 guard let uuid = UUID(uuidString: id) else { return nil }
-                let alarms = await AlarmManager.shared.alarms
+                let alarms = AlarmManager.shared.alarms
                 guard let alarm = alarms.first(where: { $0.id == uuid }) else { return nil }
                 switch alarm.state {
                 case .scheduled: return "scheduled"
-                case .ringing: return "ringing"
-                case .snoozed: return "snoozed"
-                default: return "unknown"
+                case .countdown: return "countdown"
+                case .alerting: return "alerting"
+                case .paused: return "paused"
+                @unknown default: return "unknown"
                 }
             }
             #endif
@@ -263,7 +308,7 @@ class AlarmKit: HybridAlarmKitSpec {
         return NitroModules.Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
-                let alarms = await AlarmManager.shared.alarms
+                let alarms = AlarmManager.shared.alarms
                 return alarms.map { $0.id.uuidString }
             }
             #endif

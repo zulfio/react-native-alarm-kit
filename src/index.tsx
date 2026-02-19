@@ -9,6 +9,10 @@ import type {
 const AlarmKitHybridObject =
   NitroModules.createHybridObject<AlarmKit>('AlarmKit');
 
+export function isSupported(): boolean {
+  return AlarmKitHybridObject.isSupported();
+}
+
 export async function requestAlarmPermission(): Promise<boolean> {
   return AlarmKitHybridObject.requestAlarmPermission();
 }
@@ -73,24 +77,34 @@ export async function getAllAlarms(): Promise<string[]> {
   return AlarmKitHybridObject.getAllAlarms();
 }
 
-export async function createAlarmButton(
+export function createAlarmButton(
   text: string,
   textColor: string,
   icon: string
-): Promise<CustomizableAlarmButton> {
-  return {
-    text,
-    textColor,
-    icon,
-  };
+): CustomizableAlarmButton {
+  return { text, textColor, icon };
 }
 
-export async function createAlarmCountdown(
+export function createAlarmCountdown(
   preAlert: number | null,
   postAlert: number | null
-): Promise<AlarmCountdown> {
-  return {
-    preAlert,
-    postAlert,
-  };
+): AlarmCountdown {
+  return { preAlert, postAlert };
 }
+
+const RNAlarmKit = {
+  isSupported,
+  requestAlarmPermission,
+  scheduleFixedAlarm,
+  scheduleRelativeAlarm,
+  cancelAlarm,
+  cancelAllAlarms,
+  getAlarm,
+  getAllAlarms,
+  createAlarmButton,
+  createAlarmCountdown,
+};
+
+export default RNAlarmKit;
+
+export type { AlarmCountdown, AlarmWeekday, CustomizableAlarmButton };
