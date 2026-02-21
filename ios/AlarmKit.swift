@@ -43,17 +43,17 @@ class AlarmKit: HybridAlarmKitSpec {
         }
     }
 
-    public func checkAlarmPermission() throws -> Promise<String> {
+    public func checkAlarmPermission() throws -> Promise<AlarmAuthorizationState> {
         return Promise.async {
             #if canImport(AlarmKit)
             if #available(iOS 26.0, *) {
                 let manager = AlarmManager.shared
                 let state = manager.authorizationState
                 switch state {
-                case .authorized: return "authorized"
-                case .denied: return "denied"
-                case .notDetermined: return "notDetermined"
-                @unknown default: return "denied"
+                case .authorized: return .authorized
+                case .denied: return .denied
+                case .notDetermined: return .notdetermined
+                @unknown default: return .denied
                 }
             }
             #endif
