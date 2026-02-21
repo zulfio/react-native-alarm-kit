@@ -19,6 +19,12 @@ export async function requestAlarmPermission(): Promise<boolean> {
   return AlarmKitHybridObject.requestAlarmPermission();
 }
 
+export async function checkAlarmPermission(): Promise<
+  'authorized' | 'denied' | 'notDetermined'
+> {
+  return AlarmKitHybridObject.checkAlarmPermission();
+}
+
 export async function scheduleFixedAlarm(
   options: ScheduleFixedAlarmOptions
 ): Promise<string> {
@@ -89,6 +95,7 @@ export function createAlarmCountdown(
 const RNAlarmKit = {
   isSupported,
   requestAlarmPermission,
+  checkAlarmPermission,
   scheduleFixedAlarm,
   scheduleRelativeAlarm,
   cancelAlarm,

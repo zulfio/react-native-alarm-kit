@@ -58,6 +58,13 @@ if (!supported) {
 const granted = await RNAlarmKit.requestAlarmPermission();
 ```
 
+### Check Permission Status
+
+```js
+const status = await RNAlarmKit.checkAlarmPermission();
+// "authorized" | "denied" | "notDetermined"
+```
+
 ### Schedule a Fixed Alarm (one-time, by timestamp)
 
 ```js
@@ -171,6 +178,10 @@ Returns `true` if the device is running iOS 26+ and AlarmKit is available.
 ### `requestAlarmPermission(): Promise<boolean>`
 
 Requests authorization to schedule alarms. Returns `true` if granted.
+
+### `checkAlarmPermission(): Promise<'authorized' | 'denied' | 'notDetermined'>`
+
+Returns the current alarm authorization status without prompting the user.
 
 ### `scheduleFixedAlarm(options): Promise<string>`
 

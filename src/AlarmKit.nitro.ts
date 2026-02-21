@@ -4,6 +4,7 @@ export interface AlarmKit
   extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> {
   isSupported(): boolean;
   requestAlarmPermission(): Promise<boolean>;
+  checkAlarmPermission(): Promise<'authorized' | 'denied' | 'notDetermined'>;
   scheduleFixedAlarm(
     title: string,
     stopBtn: CustomizableAlarmButton,
