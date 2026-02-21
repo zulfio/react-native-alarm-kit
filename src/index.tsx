@@ -1,5 +1,6 @@
 import { NitroModules } from 'react-native-nitro-modules';
 import type {
+  AlarmAuthorizationState,
   AlarmCountdown,
   AlarmKit,
   AlarmWeekday,
@@ -19,9 +20,7 @@ export async function requestAlarmPermission(): Promise<boolean> {
   return AlarmKitHybridObject.requestAlarmPermission();
 }
 
-export async function checkAlarmPermission(): Promise<
-  'authorized' | 'denied' | 'notDetermined'
-> {
+export async function checkAlarmPermission(): Promise<AlarmAuthorizationState> {
   return AlarmKitHybridObject.checkAlarmPermission();
 }
 
@@ -109,6 +108,7 @@ const RNAlarmKit = {
 export default RNAlarmKit;
 
 export type {
+  AlarmAuthorizationState,
   AlarmCountdown,
   AlarmWeekday,
   CustomizableAlarmButton,
